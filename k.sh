@@ -12,24 +12,15 @@ k () {
   unsetopt pushd_ignore_dups
 
   # Process options and get files/directories
-  typeset -a o_all o_almost_all o_human o_si o_directory o_group_directories \
-    o_no_directory o_no_vcs o_sort o_sort_reverse o_help
+  typeset -a o_all o_almost_all o_human o_si o_directory o_no_directory o_no_vcs o_help
   zparseopts -E -D \
              a=o_all -all=o_all \
              A=o_almost_all -almost-all=o_almost_all \
-             c=o_sort \
              d=o_directory -directory=o_directory \
-       -group-directories-first=o_group_directories \
              h=o_human -human=o_human \
              -si=o_si \
              n=o_no_directory -no-directory=o_no_directory \
              -no-vcs=o_no_vcs \
-             r=o_sort_reverse -reverse=o_sort_reverse \
-             -sort:=o_sort \
-             S=o_sort \
-             t=o_sort \
-             u=o_sort \
-             U=o_sort \
              -help=o_help
 
   # Print Help if bad usage, or they asked for it
@@ -39,19 +30,10 @@ k () {
     print -u2 "Options:"
     print -u2 "\t-a      --all           list entries starting with ."
     print -u2 "\t-A      --almost-all    list all except . and .."
-    print -u2 "\t-c                      sort by ctime (inode change time)"
     print -u2 "\t-d      --directory     list only directories"
     print -u2 "\t-n      --no-directory  do not list directories"
     print -u2 "\t-h      --human         show filesizes in human-readable format"
     print -u2 "\t        --si            with -h, use powers of 1000 not 1024"
-    print -u2 "\t-r      --reverse       reverse sort order"
-    print -u2 "\t-S                      sort by size"
-    print -u2 "\t-t                      sort by time (modification time)"
-    print -u2 "\t-u                      sort by atime (use or access time)"
-    print -u2 "\t-U                      Unsorted"
-    print -u2 "\t        --sort WORD     sort by WORD: none (U), size (S),"
-    print -u2 "\t                        time (t), ctime or status (c),"
-    print -u2 "\t            atime or access or use (u)"
     print -u2 "\t        --no-vcs        do not get VCS status (much faster)"
     print -u2 "\t        --help          show this help"
     return 1
@@ -61,30 +43,6 @@ k () {
   if [[ -n "$o_directory" && -n "$o_no_directory" ]]; then
     print -u2 "$o_directory and $o_no_directory cannot be used together"
     return 1
-  fi
-
-  # case is like a mnemonic for sort order:
-  # lower-case for standard, upper-case for descending
-  local S_ORD="o" R_ORD="O" SPEC="n"  # default: by name
-
-  # translate ls options to glob-qualifiers,
-  # ignoring "--sort" prefix of long-args form
-  case ${o_sort:#--sort} in
-    -U|none)                     SPEC="N";;
-    -t|time)                     SPEC="m";;
-    -c|ctime|status)             SPEC="c";;
-    -u|atime|access|use)         SPEC="a";;
-    # reverse default order for sort by size
-    -S|size) S_ORD="O" R_ORD="o" SPEC="L";;
-  esac
-
-  if [[ "$o_sort_reverse" == "" ]]; then
-    typeset SORT_GLOB="${S_ORD}${SPEC}"
-  else
-    typeset SORT_GLOB="${R_ORD}${SPEC}"
-  fi
-  if [[ "$o_group_directories" != "" ]]; then
-    SORT_GLOB="oe:[[ -d \$REPLY ]];REPLY=\$?:$SORT_GLOB"
   fi
 
   # Check which numfmt available (if any), warn user if not available
@@ -494,13 +452,13 @@ k () {
             popd >/dev/null
           fi
         else
-          STATUS='N'
+          STATUS='N'          
         fi
       elif (( INSIDE_WORK_TREE )); then
         # File
         STATUS=${$(git status --porcelain --ignored --untracked-files=normal $GIT_TOPLEVEL/${${${NAME:a}##$GIT_TOPLEVEL}#*/})[1]}
       else
-        STATUS='N'
+        STATUS='N'        
       fi
       case "$STATUS" in
           (D)    REPOMARKER=$'\e[0;31m+\e[0m';;     # Tracked & Dirty
@@ -510,7 +468,7 @@ k () {
           (A)    REPOMARKER=$'\e[38;5;082m+\e[0m';; # Added
           (N)    REPOMARKER=' ';;                   # Not a repo
           (*)    REPOMARKER=$'\e[38;5;082m|\e[0m';; # Clean
-      esac
+      esac      
 
       # --------------------------------------------------------------------------
       # Colour the filename
@@ -556,7 +514,7 @@ k () {
     done
     if [[ ! -f $base_dir ]]; then
       popd >/dev/null
-    fi
+    fi    
   done
 }
 
